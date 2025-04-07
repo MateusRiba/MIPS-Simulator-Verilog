@@ -1,30 +1,13 @@
-// Instruction R-type
-
-`define R_TYPE  6'b000000
-
-`define JUMP    6'b000010
-`define JR      6'b001000
-`define ADDU    6'b100001
-`define SUB     6'b100010
-
-// Instruction I-type
-
-`define LUI     6'b001111
-`define ORI     6'b001101
-`define ADDI    6'b001000
-`define ADDIU   6'b001001
-`define BEQ     6'b000100
-`define LW      6'b100011
-`define SW      6'b101011
-
-// Instruction J-type
-
-`define JAL     6'b000011
-
 module SignExtend (
-    input [15:0] in,
-    output [31:0] out
+    input [15:0] in,      // Entrada de 16 bits (imediato ou valor curto)
+    output [31:0] out     // Saída de 32 bits com sinal estendido
 );
+    // Atribuição contínua que forma a saída de 32 bits:
+    // {{16{in[15]}}, in} cria um vetor de 32 bits onde:
+    // - {16{in[15]}}: Repete 16 vezes o bit mais significativo (bit 15) da entrada.
+    //   Isso garante que o valor estendido mantenha o mesmo sinal (0 para positivo, 1 para negativo).
+    // - in: Concatena os 16 bits originais.
+    // O resultado é um valor de 32 bits com a extensão de sinal apropriada.
     assign out = {{16{in[15]}}, in};
 
 endmodule

@@ -1,41 +1,26 @@
-// Instruction R-type
-
-`define R_TYPE  6'b000000
-
-`define JUMP    6'b000010
-`define JR      6'b001000
-`define ADDU    6'b100001
-`define SUB     6'b100010
-
-// Instruction I-type
-
-`define LUI     6'b001111
-`define ORI     6'b001101
-`define ADDI    6'b001000
-`define ADDIU   6'b001001
-`define BEQ     6'b000100
-`define LW      6'b100011
-`define SW      6'b101011
-
-// Instruction J-type
-
-`define JAL     6'b000011
-
 module RegisterFile (
-    input clk,
-    input regWrite,
-    input [4:0] readReg1,
-    input [4:0] readReg2,
-    input [4:0] writeReg,
-    input [31:0] writeData,
-    output [31:0] readData1,
-    output [31:0] readData2
+    input clk,                      // Sinal de clock que sincroniza as operações de escrita.
+    input regWrite,                 // Sinal de controle para escrita; quando ativo, permite escrever no registrador.
+    input [4:0] readReg1,           // Endereço do primeiro registrador a ser lido (5 bits, pois 2^5 = 32).
+    input [4:0] readReg2,           // Endereço do segundo registrador a ser lido (5 bits).
+    input [4:0] writeReg,           // Endereço do registrador destino para escrita (5 bits).
+    input [31:0] writeData,         // Dados de 32 bits que serão escritos no registrador selecionado.
+    output [31:0] readData1,        // Saída com o conteúdo do primeiro registrador lido.
+    output [31:0] readData2         // Saída com o conteúdo do segundo registrador lido.
 );
+    // Declaração do vetor de registradores:
+    // São 32 registradores, cada um com 32 bits.
     reg [31:0] registers [31:0];
     
+    // Atribuições contínuas para leitura:
+    // readData1 recebe o conteúdo do registrador no endereço readReg1.
+    // readData2 recebe o conteúdo do registrador no endereço readReg2.
     assign readData1 = registers[readReg1];
     assign readData2 = registers[readReg2];
     
+    // Bloco always síncrono para escrita no banco de registradores.
+    // Na borda de subida do clock, se o sinal regWrite estiver ativo, 
+    // o valor writeData é escrito no registrador especificado por writeReg.
     always @(posedge clk) begin
         if (regWrite)
             registers[writeReg] <= writeData;

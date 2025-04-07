@@ -1,36 +1,17 @@
-// Instruction R-type
-
-`define R_TYPE  6'b000000
-
-`define JUMP    6'b000010
-`define JR      6'b001000
-`define ADDU    6'b100001
-`define SUB     6'b100010
-
-// Instruction I-type
-
-`define LUI     6'b001111
-`define ORI     6'b001101
-`define ADDI    6'b001000
-`define ADDIU   6'b001001
-`define BEQ     6'b000100
-`define LW      6'b100011
-`define SW      6'b101011
-
-// Instruction J-type
-
-`define JAL     6'b000011
-
 module ProgramCounter (
-    input clk,
-    input reset,
-    input [31:0] nextPC,
-    output reg [31:0] currentPC
+    input clk,                   // Sinal de clock que sincroniza a atualização do PC.
+    input reset,                 // Sinal de reset; quando ativo, o PC é zerado.
+    input [31:0] nextPC,         // Próximo endereço de instrução a ser carregado.
+    output reg [31:0] currentPC  // Endereço atual da instrução (contador de programa).
 );
+    // Bloco sempre sensível à borda de subida do clock ou do reset.
+    // Utiliza-se o reset com borda de subida para permitir um reset assíncrono.
     always @(posedge clk or posedge reset) begin
         if (reset)
+            // Se o reset estiver ativo, zera o PC (inicialização do contador).
             currentPC <= 0;
         else
+            // Caso contrário, atualiza o PC com o valor de nextPC.
             currentPC <= nextPC;
     end
 

@@ -1,3 +1,8 @@
+# Esse codigo Automatiza a conversão dos arquivos binários em código de inicialização 
+# para o simulador. Isso facilita a atualização e evita erros manuais na escrita das 
+# atribuições de memória.
+
+
 import os
 
 file = open("códigos auxiliares\\binary\\.text.bin", "r")
