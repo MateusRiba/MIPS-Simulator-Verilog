@@ -1,14 +1,11 @@
 // Instruction R-type
-
 `define R_TYPE  6'b000000
-
 `define JUMP    6'b000010
 `define JR      6'b001000
 `define ADDU    6'b100001
 `define SUB     6'b100010
 
 // Instruction I-type
-
 `define LUI     6'b001111
 `define ORI     6'b001101
 `define ADDI    6'b001000
@@ -18,13 +15,13 @@
 `define SW      6'b101011
 
 // Instruction J-type
-
 `define JAL     6'b000011
 
 module CPU (
     input clk,
     input reset
 );
+    // Declaração de fios para interligar os módulos
     wire [31:0] pc, nextPC, instruction;
     wire [31:0] readData1, readData2, writeData, aluResult, readData, signExtended, aluSrcB, pcBranch, jumpAddr;
     wire [4:0] writeReg;
@@ -118,10 +115,9 @@ module CPU (
 
     assign pcBranch = pc + 4 + (signExtended << 2);
     assign jumpAddr = {pc[31:28], instruction[25:0], 2'b00};
-
     assign nextPC = (jump) ? jumpAddr :
                     (branch & zero) ? pcBranch : pc + 4;
-
+                    
 endmodule
 
 module ALUControlUnit (
@@ -171,10 +167,12 @@ module ALU (
             4'b0011: Result = B << 16;
             default: Result = 0;
         endcase
+        // Monitor ALU operation
+        $display("Time: %t | ALU Operation: %b | A: %d, B: %d, Result: %d", $time, ALUControl, A, B, Result);
     end
-
     assign Zero = (Result == 0);
 endmodule
+
 
 module ControlUnit (
     input [5:0] OpCode,
@@ -312,8 +310,12 @@ module ControlUnit (
                 ALUOp = 2'b00;
             end
         endcase
+    // Monitor control signals
+        $display("Time: %t | Control Signals | RegDst: %b, ALUSrc: %b, MemToReg: %b, RegWrite: %b, MemRead: %b, MemWrite: %b, Branch: %b, Jump: %b, ALUOp: %b", 
+                 $time, RegDst, ALUSrc, MemToReg, RegWrite, MemRead, MemWrite, Branch, Jump, ALUOp);
     end
 endmodule
+
 
 module DataMemory (
     input clk,
@@ -324,7 +326,14 @@ module DataMemory (
 );
     reg [31:0] memory [1023:0];
 
-    assign read_data = {memory[address], memory[address+1], memory[address+2], memory[address+3]};
+    // Inicializa as posições de memória com 0
+    integer j;
+    initial begin
+        for (j = 0; j < 1024; j = j + 1)
+            memory[j] = 0;
+    end
+
+    assign readData = {memory[address], memory[address+1], memory[address+2], memory[address+3]};
 
     always @(posedge clk) begin
         if (memWrite) begin
@@ -332,21 +341,20 @@ module DataMemory (
             memory[address+1] <= writeData[23:16];
             memory[address+2] <= writeData[15:8];
             memory[address+3] <= writeData[7:0];
-
-            $display("posição: %d, valor: %d", address, memory[address+3]);
+            // Monitor memory write
+            $display("Time: %t | Memory Write at address: %d, Data: %d", $time, address, writeData);
         end
     end
-
 endmodule
+
+
 
 module InstructionMemory (
     input [31:0] address,
     output [31:0] instruction
 );
     reg [7:0] memory [1023:0];
-
-    assign instruction = {memory[address], memory[address + 1], memory[address + 2], memory[address + 3]};
-
+    assign instruction = {memory[address], memory[address+1], memory[address+2], memory[address+3]};
 endmodule
 
 module MUX2to1 #(parameter WIDTH = 32) (
@@ -355,9 +363,7 @@ module MUX2to1 #(parameter WIDTH = 32) (
     input sel,
     output [WIDTH-1:0] out
 );
-
     assign out = sel ? in1 : in0;
-
 endmodule
 
 module ProgramCounter (
@@ -367,13 +373,16 @@ module ProgramCounter (
     output reg [31:0] currentPC
 );
     always @(posedge clk or posedge reset) begin
-        if (reset)
+        if (reset) begin
             currentPC <= 0;
-        else
+        end else begin
             currentPC <= nextPC;
+            // Monitor Program Counter update
+            $display("Time: %t | ProgramCounter updated to: %d", $time, currentPC);
+        end
     end
-
 endmodule
+
 
 module RegisterFile (
     input clk,
@@ -387,14 +396,25 @@ module RegisterFile (
 );
     reg [31:0] registers [31:0];
     
+    // Inicializa todos os registradores com 0
+    integer i;
+    initial begin
+        for (i = 0; i < 32; i = i + 1)
+            registers[i] = 0;
+    end
+    
+    // Leitura contínua dos registradores
     assign readData1 = registers[readReg1];
     assign readData2 = registers[readReg2];
     
+    // Escrita síncrona: se regWrite estiver ativo, escreve writeData no registrador
     always @(posedge clk) begin
-        if (regWrite)
+        if (regWrite) begin
             registers[writeReg] <= writeData;
+            // Monitor register write
+            $display("Time: %t | Register[%d] written with value: %d", $time, writeReg, writeData);
+        end
     end
-
 endmodule
 
 module SignExtend (
@@ -402,5 +422,4 @@ module SignExtend (
     output [31:0] out
 );
     assign out = {{16{in[15]}}, in};
-
 endmodule
